@@ -1,5 +1,6 @@
 const userModel=require("../models/user.model")
 const jwt=require("jsonwebtoken")
+const emailService=require("../services/email.service")
 const bcrypt=require("bcrypt")
 async function createUser(req, res) {
 
@@ -40,31 +41,47 @@ async function createUser(req, res) {
         message: "User created successfully",
         name: user.username,
         email: user.email
-    });
+    }
+
+);
+await emailService.sendRegistrationEmail(user.email,user.username)
 
     console.log("7. Response sent");
 }
+async function loginUser(req, res) {
 
-async function loginUser(req,res){
-const {email,password}=req.body;
-const user=await userModel.findOne({email:email}).select("+password")
-if(!user){
-return res.status(402).json({message:"Email not registered"})
-}
-isPassword=await bcrypt.compare(password,user.password)
-if(!isPassword){
-    return res.status(402).json({message:"Incorrect password"})
-}
-const token = jwt.sign(
+    const { email, password } = req.body;
+
+    const user = await userModel
+        .findOne({ email: email })
+        .select("+password");
+
+    if (!user) {
+        return res.status(402).json({
+            message: "Email not registered"
+        });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(
+        password,
+        user.password
+    );
+
+    if (!isPasswordCorrect) {
+        return res.status(402).json({
+            message: "Incorrect password"
+        });
+    }
+
+    const token = jwt.sign(
         { userId: user._id },
         process.env.JWT_SECRET
     );
 
-    
-
     res.cookie("jwt_token", token);
-return res.status(200).json({
-    message:"user logged in successfully"
-})
+
+    return res.status(200).json({
+        message: "User logged in successfully"
+    });
 }
 module.exports={createUser,loginUser}
