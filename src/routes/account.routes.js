@@ -23,6 +23,9 @@ router.post(
 );
 
 router.get("/transactions",authMiddleware.authMiddleware,transactionController.getTransactions)
+router.get("/account",authMiddleware.authMiddleware,accountController.getAccount);
 
 router.post("/transfer",authMiddleware.authMiddleware,accountController.transfer)
+
+router.get("/reconsillation",authMiddleware.authMiddleware,accountController.reconsillation)
 module.exports = router;

@@ -28,14 +28,18 @@ async function createUser(req, res) {
 
 
 
-    const token = jwt.sign(
+      const token = jwt.sign(
         { userId: user._id },
-        process.env.JWT_SECRET
+        process.env.JWT_SECRET,
+        {expiresIn:"1d"}
     );
 
-    
-
-    res.cookie("jwt_token", token);
+    res.cookie("jwt_token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 24 * 60 * 60 * 1000
+});
 
     res.status(201).json({
         message: "User created successfully",
@@ -75,13 +79,31 @@ async function loginUser(req, res) {
 
     const token = jwt.sign(
         { userId: user._id },
-        process.env.JWT_SECRET
+        process.env.JWT_SECRET,
+        {expiresIn:"1d"}
     );
 
-    res.cookie("jwt_token", token);
+    res.cookie("jwt_token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 24 * 60 * 60 * 1000
+});
 
     return res.status(200).json({
         message: "User logged in successfully"
     });
 }
-module.exports={createUser,loginUser}
+
+async function logOut(req,res){
+res.clearCookie("jwt_token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax"
+});
+return res.status(200).json({
+    message: "Logged out successfully"
+});
+}
+
+module.exports={createUser,loginUser,logOut}

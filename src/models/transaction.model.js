@@ -27,7 +27,11 @@ const transactionSchema=new mongoose.Schema({
         type:String,
         required:true,
         unique:true
-    }
+    },idempotencyKey: {
+    type: String,
+    unique: true,
+    sparse: true
+}
 },
 {timestamps:true})
 
